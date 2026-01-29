@@ -302,16 +302,18 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
         }
 
         if (dbFiscalPayments) {
-          setFiscalPayments(dbFiscalPayments.map(p => ({
-            id: p.id,
-            type: p.type,
-            amount: Number(p.amount),
-            dueDate: p.due_date,
-            paid: p.paid,
-            paidDate: p.paid_date,
-            notes: p.notes
-          })));
-        }
+  setFiscalPayments(dbFiscalPayments.map(p => ({
+    id: p.id,
+    type: p.type,
+    amount: Number(p.amount),
+    dueDate: p.due_date,
+    paid: p.paid,
+    paidDate: p.paid_date,
+    notes: p.notes,
+    date: p.date || p.due_date || '',
+    year: p.year || new Date(p.due_date || Date.now()).getFullYear()
+  })));
+}
 
         console.log('✅ Dati caricati da Supabase');
         console.log('📅 Scheduled items:', convertedScheduledItems.length);
