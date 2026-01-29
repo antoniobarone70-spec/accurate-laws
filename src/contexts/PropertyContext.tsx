@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PropertyData, MonthlyRecord, FiscalPayment, ScheduledItem, InventoryRoom, ExtraExpense } from '@/types/property';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/Integrations/Supabase/client';
 
 interface PropertyContextType {
   property: PropertyData;
