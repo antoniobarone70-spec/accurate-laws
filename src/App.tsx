@@ -12,7 +12,7 @@ import Finanze from "./pages/Finanze";
 import Leggi from "./pages/Leggi";
 import Dati from "./pages/Dati";
 import NotFound from "./pages/NotFound";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/Integrations/Supabase/client";
 import {
   saveProperty,
   setMonthlyRecords,
