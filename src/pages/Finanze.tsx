@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { formatEUR } from '@/lib/utils';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -135,6 +136,7 @@ export default function Finanze() {
     let totalCondoFees = 0;
     let totalExtraOrdinary = 0;
     let totalExtraStraordinary = 0;
+    let monthsWithIncome = 0;
 
     monthlyRecords
       .filter(r => r.year === selectedYear)
@@ -142,6 +144,7 @@ export default function Finanze() {
         if (record.status === 'registrato' && record.rentReceived > 0) {
           totalIncome += record.rentReceived || 0;
           totalCondoFees += condominiumFees;
+          monthsWithIncome += 1;
         }
         (record.extraExpenses || []).forEach(e => {
           if (e.category === 'ordinaria') {
@@ -153,7 +156,8 @@ export default function Finanze() {
       });
 
     const totalOrdinaryExpenses = totalCondoFees + totalExtraOrdinary;
-    const netAnnual = totalIncome - totalOrdinaryExpenses - totalExtraStraordinary - totalTaxesAnnual;
+    const taxesProrated = (totalTaxesAnnual || 0) * (monthsWithIncome / 12);
+    const netAnnual = totalIncome - totalOrdinaryExpenses - totalExtraStraordinary - taxesProrated;
 
     return {
       income: totalIncome,
@@ -161,7 +165,7 @@ export default function Finanze() {
       extraOrdinary: totalExtraOrdinary,
       extraStraordinary: totalExtraStraordinary,
       totalOrdinaryExpenses,
-      taxes: totalTaxesAnnual,
+      taxes: isNaN(taxesProrated) ? 0 : taxesProrated,
       net: isNaN(netAnnual) ? 0 : netAnnual
     };
   };
@@ -235,14 +239,6 @@ export default function Finanze() {
     }
   };
 
-  // Funzione helper per formattare numeri in modo sicuro
-  const safeFormat = (value: number): string => {
-    if (isNaN(value) || value === null || value === undefined) {
-      return '0.00';
-    }
-    return value.toFixed(2);
-  };
-
   return (
     <PageLayout title="Finanze" subtitle="BILANCIO NETTO">
       <div className="p-4 space-y-4 max-w-lg mx-auto">
@@ -255,14 +251,14 @@ export default function Finanze() {
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="text-xs uppercase tracking-wider opacity-80">LORDO MENSILE</p>
               <p className="text-2xl font-display font-bold italic">
-                {currentMonthData.hasData ? `${safeFormat(currentMonthData.income)} €` : '—'}
+                {currentMonthData.hasData ? formatEUR(currentMonthData.income) : '—'}
               </p>
               <p className="text-[10px] opacity-70">{MONTHS[selectedMonth]}</p>
             </div>
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="text-xs uppercase tracking-wider opacity-80">NETTO MENSILE</p>
               <p className={`text-2xl font-display font-bold italic ${currentMonthData.net < 0 ? 'text-red-300' : ''}`}>
-                {currentMonthData.hasData ? `${safeFormat(currentMonthData.net)} €` : '—'}
+                {currentMonthData.hasData ? formatEUR(currentMonthData.net) : '—'}
               </p>
               <p className="text-[10px] opacity-70">{MONTHS[selectedMonth]}</p>
             </div>
@@ -271,7 +267,7 @@ export default function Finanze() {
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div className="bg-white/10 rounded-xl p-3 text-center">
               <p className="text-xs uppercase tracking-wider opacity-80">IMPOSTE ANNO</p>
-              <p className="text-xl font-display font-bold italic">{safeFormat(totalTaxesAnnual)} €</p>
+              <p className="text-xl font-display font-bold italic">{formatEUR(totalTaxesAnnual)}</p>
               <p className="text-[10px] opacity-70">
                 {isFirstYear 
                   ? `Pagate: IMU | Accantonate: Cedolare ${currentYear + 1}`
@@ -288,7 +284,7 @@ export default function Finanze() {
               </p>
               <p className="text-[9px] opacity-60 mt-0.5">Somma dei netti mensili</p>
               <p className={`text-2xl font-display font-bold italic ${ytdData.totalYtd < 0 ? 'text-red-300' : ''}`}>
-                {safeFormat(ytdData.totalYtd)} €
+                {formatEUR(ytdData.totalYtd)}
               </p>
               <p className="text-[10px] opacity-70">Gen - {MONTHS[selectedMonth]}</p>
             </div>
@@ -306,7 +302,7 @@ export default function Finanze() {
                 <p className="text-success font-medium">Entrate Registrate</p>
                 <p className="text-xs text-muted-foreground">Bonifici ricevuti</p>
               </div>
-              <p className="text-xl font-display font-bold italic">{safeFormat(annualBilancio.income)} €</p>
+              <p className="text-xl font-display font-bold italic">{formatEUR(annualBilancio.income)}</p>
             </div>
             
             <div className="flex justify-between items-center">
@@ -314,7 +310,7 @@ export default function Finanze() {
                 <p className="text-destructive font-medium">Spese Condominiali</p>
                 <p className="text-xs text-muted-foreground">Quote mensili</p>
               </div>
-              <p className="text-xl font-display font-bold italic">-{safeFormat(annualBilancio.condoFees)} €</p>
+              <p className="text-xl font-display font-bold italic">{formatEUR(-annualBilancio.condoFees)}</p>
             </div>
             
             {annualBilancio.extraOrdinary > 0 && (
@@ -323,7 +319,7 @@ export default function Finanze() {
                   <p className="text-destructive font-medium">Spese Ordinarie Extra</p>
                   <p className="text-xs text-muted-foreground">Manutenzione ordinaria</p>
                 </div>
-                <p className="text-xl font-display font-bold italic">-{safeFormat(annualBilancio.extraOrdinary)} €</p>
+                <p className="text-xl font-display font-bold italic">{formatEUR(-annualBilancio.extraOrdinary)}</p>
               </div>
             )}
             
@@ -332,7 +328,7 @@ export default function Finanze() {
                 <p className="text-destructive font-medium">Spese Straordinarie</p>
                 <p className="text-xs text-muted-foreground">Lavori straordinari</p>
               </div>
-              <p className="text-xl font-display font-bold italic">-{safeFormat(annualBilancio.extraStraordinary)} €</p>
+              <p className="text-xl font-display font-bold italic">{formatEUR(-annualBilancio.extraStraordinary)}</p>
             </div>
             
             <div className="flex justify-between items-center">
@@ -342,13 +338,13 @@ export default function Finanze() {
                   {isFirstYear ? 'Solo IMU (Cedolare a saldo anno successivo)' : 'IMU + Cedolare Secca'}
                 </p>
               </div>
-              <p className="text-xl font-display font-bold italic">-{safeFormat(totalTaxesAnnual)} €</p>
+              <p className="text-xl font-display font-bold italic">{formatEUR(-annualBilancio.taxes)}</p>
             </div>
             
             <div className="border-t border-border pt-4 flex justify-between items-center">
               <p className="text-success font-bold uppercase">UTILE NETTO ANNUALE</p>
               <p className={`text-2xl font-display font-bold italic ${annualBilancio.net >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {safeFormat(annualBilancio.net)} €
+                {formatEUR(annualBilancio.net)}
               </p>
             </div>
           </div>
@@ -361,7 +357,7 @@ export default function Finanze() {
                   <p className="text-sm font-medium text-blue-900 dark:text-blue-200">Primo anno di locazione</p>
                   <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
                     Per legge, nel primo anno di locazione non sono dovuti acconti sulla cedolare secca. 
-                    L'imposta (€{safeFormat(futureCedolare)}) verrà versata a SALDO nell'anno {currentYear + 1}.
+                    L'imposta ({formatEUR(futureCedolare)}) verrà versata a SALDO nell'anno {currentYear + 1}.
                   </p>
                 </div>
               </div>
@@ -400,39 +396,39 @@ export default function Finanze() {
                 
                 <div className="flex justify-between items-center py-2 border-b border-border">
                   <span className="text-muted-foreground">Bonifico Ricevuto</span>
-                  <span className="text-success font-semibold">+{safeFormat(currentMonthData.income)} €</span>
+                  <span className="text-success font-semibold">+{formatEUR(currentMonthData.income)}</span>
                 </div>
                 
                 {currentMonthData.condoFees > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-muted-foreground">Spese Condominiali</span>
-                    <span className="text-destructive">-{safeFormat(currentMonthData.condoFees)} €</span>
+                    <span className="text-destructive">{formatEUR(-currentMonthData.condoFees)}</span>
                   </div>
                 )}
                 
                 {currentMonthData.extraOrdinary > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-muted-foreground">Spese Ordinarie Extra</span>
-                    <span className="text-destructive">-{safeFormat(currentMonthData.extraOrdinary)} €</span>
+                    <span className="text-destructive">{formatEUR(-currentMonthData.extraOrdinary)}</span>
                   </div>
                 )}
                 
                 {currentMonthData.extraStraordinary > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-muted-foreground">Spese Straordinarie</span>
-                    <span className="text-destructive">-{safeFormat(currentMonthData.extraStraordinary)} €</span>
+                    <span className="text-destructive">{formatEUR(-currentMonthData.extraStraordinary)}</span>
                   </div>
                 )}
                 
                 <div className="flex justify-between items-center py-2 border-b border-border">
                   <span className="text-muted-foreground">Imposte (quota mensile)</span>
-                  <span className="text-destructive">-{safeFormat(currentMonthData.taxes)} €</span>
+                  <span className="text-destructive">{formatEUR(-currentMonthData.taxes)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xs uppercase tracking-wider text-success font-medium">UTILE NETTO MENSILE</span>
                   <span className={`text-2xl font-display font-bold italic ${currentMonthData.net >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    {safeFormat(currentMonthData.net)} €
+                    {formatEUR(currentMonthData.net)}
                   </span>
                 </div>
               </>
@@ -468,7 +464,7 @@ export default function Finanze() {
                   <p className="text-xs text-muted-foreground">{formatDate(item.dueDate)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display font-bold italic">{safeFormat(item.amount)} €</p>
+                  <p className="font-display font-bold italic">{formatEUR(item.amount)}</p>
                   <p className={`text-[10px] uppercase ${item.paid ? 'text-success' : 'text-destructive'}`}>
                     {item.paid ? 'PAGATO' : 'DA PAGARE'}
                   </p>
@@ -484,7 +480,7 @@ export default function Finanze() {
                   <p className="text-xs text-blue-700 dark:text-blue-300">Da versare nel {currentYear + 1}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display font-bold italic text-blue-900 dark:text-blue-200">{safeFormat(futureCedolare)} €</p>
+                  <p className="font-display font-bold italic text-blue-900 dark:text-blue-200">{formatEUR(futureCedolare)}</p>
                   <p className="text-[10px] uppercase text-blue-600 dark:text-blue-400">FUTURO</p>
                 </div>
               </div>
@@ -494,11 +490,11 @@ export default function Finanze() {
           <div className="mt-4 pt-4 border-t border-border space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Totale da pagare</span>
-              <span className="text-lg font-bold text-destructive">{safeFormat(totalToPay)} €</span>
+              <span className="text-lg font-bold text-destructive">{formatEUR(totalToPay)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-success">Già pagato</span>
-              <span className="text-lg font-bold text-success">{safeFormat(totalPaid)} €</span>
+              <span className="text-lg font-bold text-success">{formatEUR(totalPaid)}</span>
             </div>
           </div>
         </div>
@@ -528,14 +524,14 @@ export default function Finanze() {
                   !item.hasData ? 'text-muted-foreground' : 
                   item.net >= 0 ? 'text-success' : 'text-destructive'
                 }`}>
-                  {item.hasData ? `€${safeFormat(item.net)}` : '—'}
+                  {item.hasData ? formatEUR(item.net) : '—'}
                 </span>
               </div>
             ))}
             <div className="flex justify-between items-center py-3 px-3 mt-4 bg-primary/10 rounded-lg border border-primary/20">
               <span className="font-bold">Totale</span>
               <span className={`font-bold text-lg ${ytdData.totalYtd >= 0 ? 'text-success' : 'text-destructive'}`}>
-                €{safeFormat(ytdData.totalYtd)}
+                {formatEUR(ytdData.totalYtd)}
               </span>
             </div>
           </div>

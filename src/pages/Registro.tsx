@@ -7,6 +7,7 @@ import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { MonthlyRecord, ExtraExpense } from '@/types/property';
+import { formatEUR } from '@/lib/utils';
 
 const MONTHS = [
   { key: 1, short: 'GEN', long: 'Gennaio' },
@@ -136,7 +137,7 @@ export default function Registro() {
               <div className="flex justify-between items-center py-3 border-b border-border">
                 <span className="text-muted-foreground">Affitto + Spese</span>
                 <span className={`text-xl font-bold ${selectedRecord.rentReceived > 0 ? 'text-success' : 'text-muted-foreground'}`}>
-                  {selectedRecord.rentReceived > 0 ? `€${selectedRecord.rentReceived.toFixed(2)}` : 'Non registrato'}
+                  {selectedRecord.rentReceived > 0 ? formatEUR(selectedRecord.rentReceived) : 'Non registrato'}
                 </span>
               </div>
               
@@ -194,7 +195,7 @@ export default function Registro() {
                       <p className="text-xs text-muted-foreground">{formatDate(expense.date)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-destructive font-semibold">-€{expense.amount.toFixed(2)}</span>
+                      <span className="text-destructive font-semibold">{formatEUR(-expense.amount)}</span>
                       <button 
                         onClick={() => handleRemoveExpense(expense.id)}
                         className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors"

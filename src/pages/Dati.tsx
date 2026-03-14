@@ -7,6 +7,7 @@ import { Plus, Trash2, Download, Upload, Calendar, RotateCcw } from 'lucide-reac
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import BackupRestore from '@/components/BackupRestore';
+import { formatEUR } from '@/lib/utils';
 
 type TabType = 'immobile' | 'contratto' | 'catasto' | 'inventario';
 
@@ -761,7 +762,7 @@ export default function Dati() {
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-destructive/20">
                   <span className="text-destructive font-semibold">Totale Calcolato:</span>
-                  <span className="text-2xl font-display font-bold text-destructive italic">€{Math.round(imuTotal)}</span>
+                  <span className="text-2xl font-display font-bold text-destructive italic">{formatEUR(imuTotal)}</span>
                 </div>
               </div>
             </div>

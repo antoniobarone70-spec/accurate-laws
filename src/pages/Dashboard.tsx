@@ -2,9 +2,10 @@ import { useProperty } from '@/contexts/PropertyContext';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { calculateRemainingDays, calculateProgress } from '@/types/property';
 import { Building2, Calendar, Euro, User, MapPin, Phone, Clock, FileText, TrendingUp } from 'lucide-react';
+import { formatEUR } from '@/lib/utils';
 
 export default function Dashboard() {
-  const { property } = useProperty();
+  const { property, monthlyRecords } = useProperty();
 
   if (!property) {
     return (
@@ -25,6 +26,17 @@ export default function Dashboard() {
   const progress = calculateProgress(property.startDate, property.endDate);
   const monthlyRent = property.monthlyRent || 0;
   const contractProgress = Math.round(progress);
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const currentRecord = monthlyRecords.find(r => r.month === currentMonth && r.year === currentYear);
+  const statusLabel = currentRecord
+    ? (currentRecord.status === 'registrato' && currentRecord.rentReceived > 0
+        ? 'Registrato'
+        : currentRecord.status === 'ritardo'
+          ? 'In ritardo'
+          : 'In attesa')
+    : 'Non registrato';
 
   return (
     <PageLayout title="Dashboard" subtitle="STATO IMMOBILIARE">
@@ -60,7 +72,7 @@ export default function Dashboard() {
                 <FileText className="w-3 h-3" />
                 <p className="text-[9px] uppercase tracking-wider">Stato Incasso</p>
               </div>
-              <p className="text-lg font-bold italic">In attesa</p>
+              <p className="text-lg font-bold italic">{statusLabel}</p>
               <p className="text-[10px] opacity-70 mt-1">Mese corrente</p>
             </div>
 
@@ -80,7 +92,7 @@ export default function Dashboard() {
                 <Euro className="w-3 h-3" />
                 <p className="text-[9px] uppercase tracking-wider">Lordo Mensile</p>
               </div>
-              <p className="text-2xl font-bold">{monthlyRent.toFixed(2)} €</p>
+              <p className="text-2xl font-bold">{formatEUR(monthlyRent)}</p>
               <p className="text-[10px] opacity-70 mt-1">Canone base</p>
             </div>
           </div>
