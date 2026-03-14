@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { formatEUR } from '@/lib/utils';
+import ReceiptAction from '@/components/ReceiptAction';
 
 const MONTHS = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
@@ -19,7 +20,7 @@ const MONTHS = [
 ];
 
 export default function Finanze() {
-  const { property, monthlyRecords, fiscalPayments, toggleFiscalPaymentPaid } = useProperty();
+  const { property, monthlyRecords, fiscalPayments, toggleFiscalPaymentPaid, receipts } = useProperty();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   
@@ -431,6 +432,8 @@ export default function Finanze() {
                     {formatEUR(currentMonthData.net)}
                   </span>
                 </div>
+                
+                <ReceiptAction month={selectedMonth + 1} year={selectedYear} />
               </>
             ) : (
               <div className="py-8 text-center">
@@ -497,6 +500,26 @@ export default function Finanze() {
               <span className="text-lg font-bold text-success">{formatEUR(totalPaid)}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Archivio Ricevute */}
+      <div className="section-card">
+        <h2 className="section-title font-display italic">Archivio Ricevute</h2>
+        <p className="section-subtitle">ULTIME EMISSIONI</p>
+        <div className="mt-3 space-y-2">
+          {receipts.slice(0, 5).map(r => (
+            <div key={r.id} className="flex items-center justify-between p-3 bg-muted rounded-xl">
+              <div className="min-w-0">
+                <p className="font-medium">N. {r.number} • {r.periodLabel}</p>
+                <p className="text-xs text-muted-foreground">{r.tenantName}</p>
+              </div>
+              <div className="text-right font-semibold">{formatEUR(r.total)}</div>
+            </div>
+          ))}
+          {receipts.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nessuna ricevuta generata.</p>
+          )}
         </div>
       </div>
 

@@ -126,6 +126,35 @@ export default function Dati() {
         {/* IMMOBILE Tab */}
         {activeTab === 'immobile' && (
           <div className="space-y-4 animate-fade-in">
+            {/* Impostazioni Ricevuta */}
+            <div className="section-card">
+              <h2 className="section-title font-display italic">Impostazioni Ricevuta</h2>
+              <p className="section-subtitle">LOCATORE</p>
+              <div className="mt-3 grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    NOME / RAGIONE SOCIALE
+                  </label>
+                  <input
+                    type="text"
+                    value={property.landlordName || ''}
+                    onChange={(e) => updateProperty({ landlordName: e.target.value })}
+                    className="input-field w-full mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    INDIRIZZO / P.IVA
+                  </label>
+                  <input
+                    type="text"
+                    value={property.landlordInfo || ''}
+                    onChange={(e) => updateProperty({ landlordInfo: e.target.value })}
+                    className="input-field w-full mt-1"
+                  />
+                </div>
+              </div>
+            </div>
             {/* Condominio */}
             <div className="section-card">
               <h2 className="section-title">Condominio</h2>

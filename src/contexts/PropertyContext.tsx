@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PropertyData, MonthlyRecord, FiscalPayment, ScheduledItem, InventoryRoom, ExtraExpense } from '@/types/property';
+import { PropertyData, MonthlyRecord, FiscalPayment, ScheduledItem, InventoryRoom, ExtraExpense, Receipt } from '@/types/property';
 import {
   getDb,
   getProperty as getLocalProperty,
@@ -8,6 +8,10 @@ import {
   setMonthlyRecords as setLocalMonthlyRecords,
   getFiscalPayments as getLocalFiscalPayments,
   setFiscalPayments as setLocalFiscalPayments,
+  getReceipts as getLocalReceipts,
+  setReceipts as setLocalReceipts,
+  getReceiptCounter as getLocalReceiptCounter,
+  setReceiptCounter as setLocalReceiptCounter,
   exportJson,
   importJson,
 } from '@/services/localData';
@@ -34,6 +38,9 @@ interface PropertyContextType {
   getTotalRegisteredIncome: () => number;
   getTotalExtraExpenses: () => number;
   getTotalOrdinaryExpenses: () => number;
+  receipts: Receipt[];
+  receiptCounter: number;
+  addReceipt: (r: Omit<Receipt, 'id' | 'number'>) => number;
 }
 
 const defaultProperty: PropertyData = {
@@ -81,7 +88,9 @@ const defaultProperty: PropertyData = {
   contatoreLuce: '',
   contatoreAcqua: '',
   scheduledItems: [],
-  inventory: []
+  inventory: [],
+  landlordName: '',
+  landlordInfo: ''
 };
 
 const generateMonthlyRecords = (startDate: string, endDate: string, monthlyRent: number, condominiumFees: number): MonthlyRecord[] => {
@@ -118,6 +127,8 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
   
   const [monthlyRecords, setMonthlyRecords] = useState<MonthlyRecord[]>([]);
   const [fiscalPayments, setFiscalPayments] = useState<FiscalPayment[]>([]);
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [receiptCounter, setReceiptCounter] = useState<number>(0);
 
   useEffect(() => {
     const loadFromLocal = () => {
@@ -144,6 +155,10 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
         if (payments) {
           setFiscalPayments(payments);
         }
+        const recs = getLocalReceipts();
+        if (recs) setReceipts(recs);
+        const counter = getLocalReceiptCounter();
+        setReceiptCounter(counter || 0);
       } finally {
         setLoading(false);
       }
@@ -331,6 +346,23 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addReceipt: PropertyContextType['addReceipt'] = (r) => {
+    const number = (receiptCounter || 0) + 1;
+    const newReceipt: Receipt = {
+      id: Date.now().toString(),
+      number,
+      ...r,
+    };
+    setReceipts(prev => {
+      const next = [newReceipt, ...prev];
+      setLocalReceipts(next);
+      return next;
+    });
+    setReceiptCounter(number);
+    setLocalReceiptCounter(number);
+    return number;
+  };
+
   const exportData = (): string => {
     return exportJson();
   };
@@ -374,6 +406,10 @@ export function PropertyProvider({ children }: { children: ReactNode }) {
       getTotalRegisteredIncome,
       getTotalExtraExpenses,
       getTotalOrdinaryExpenses
+      ,
+      receipts,
+      receiptCounter,
+      addReceipt
     }}>
       {children}
     </PropertyContext.Provider>

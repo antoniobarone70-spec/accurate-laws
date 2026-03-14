@@ -1,4 +1,4 @@
-import { PropertyData, MonthlyRecord, FiscalPayment } from '@/types/property';
+import { PropertyData, MonthlyRecord, FiscalPayment, Receipt } from '@/types/property';
 
 const APP_DB_KEY = 'APP_DB';
 
@@ -6,6 +6,8 @@ type AppDb = {
   properties: PropertyData[];
   monthlyRecords: MonthlyRecord[];
   fiscalPayments: FiscalPayment[];
+  receipts?: Receipt[];
+  receiptCounter?: number;
 };
 
 function createEmptyDb(): AppDb {
@@ -13,6 +15,8 @@ function createEmptyDb(): AppDb {
     properties: [],
     monthlyRecords: [],
     fiscalPayments: [],
+    receipts: [],
+    receiptCounter: 0,
   };
 }
 
@@ -21,6 +25,8 @@ function readLegacyAndMerge(db: AppDb): AppDb {
     const legacyProperty = localStorage.getItem('propertyData');
     const legacyMonthly = localStorage.getItem('monthlyRecords');
     const legacyFiscal = localStorage.getItem('fiscalPayments');
+    const legacyReceipts = localStorage.getItem('receipts'); // optional legacy
+    const legacyCounter = localStorage.getItem('receiptCounter');
 
     const merged: AppDb = { ...db };
 
@@ -39,6 +45,19 @@ function readLegacyAndMerge(db: AppDb): AppDb {
     if (legacyFiscal) {
       const payments: FiscalPayment[] = JSON.parse(legacyFiscal);
       merged.fiscalPayments = payments;
+    }
+
+    if (!merged.receipts) merged.receipts = [];
+    if (!merged.receiptCounter && merged.receiptCounter !== 0) merged.receiptCounter = 0;
+    if (legacyReceipts) {
+      try {
+        const recs: Receipt[] = JSON.parse(legacyReceipts);
+        merged.receipts = recs;
+      } catch {}
+    }
+    if (legacyCounter) {
+      const n = parseInt(legacyCounter, 10);
+      if (!isNaN(n)) merged.receiptCounter = n;
     }
 
     return merged;
@@ -100,6 +119,28 @@ export function getFiscalPayments(): FiscalPayment[] {
 export function setFiscalPayments(payments: FiscalPayment[]): void {
   const db = getDb();
   db.fiscalPayments = payments;
+  setDb(db);
+}
+
+export function getReceipts(): Receipt[] {
+  const db = getDb();
+  return db.receipts || [];
+}
+
+export function setReceipts(receipts: Receipt[]): void {
+  const db = getDb();
+  db.receipts = receipts;
+  setDb(db);
+}
+
+export function getReceiptCounter(): number {
+  const db = getDb();
+  return db.receiptCounter || 0;
+}
+
+export function setReceiptCounter(n: number): void {
+  const db = getDb();
+  db.receiptCounter = n;
   setDb(db);
 }
 

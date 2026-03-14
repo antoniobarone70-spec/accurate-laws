@@ -65,6 +65,23 @@ export interface PropertyData {
   // Relazioni
   scheduledItems: ScheduledItem[];
   inventory: InventoryRoom[];
+  
+  // Locatore / Impostazioni Ricevuta
+  landlordName?: string;
+  landlordInfo?: string;
+}
+
+export interface Receipt {
+  id: string;
+  number: number;
+  date: string;
+  month: number;
+  year: number;
+  tenantName: string;
+  total: number;
+  canone: number;
+  spese: number;
+  periodLabel: string;
 }
 
 // ✅ CORRETTO: Interfaccia MonthlyRecord allineata al PropertyContext
@@ -171,7 +188,9 @@ export const defaultPropertyData: PropertyData = {
   contatoreAcqua: '',
 
   scheduledItems: [],
-  inventory: []
+  inventory: [],
+  landlordName: '',
+  landlordInfo: ''
 };
 
 // ===== FUNZIONI DI CALCOLO =====
